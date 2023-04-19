@@ -1,39 +1,45 @@
+import Notiflix from 'notiflix';
+import 'notiflix/dist/notiflix-3.2.6.min.css';
+
 const form = document.querySelector('.form');
-const firstDelay = document.querySelector('[name="delay"]');
-const delayStep = document.querySelector('[name="step"]');
-const amountSteps = document.querySelector('[name="amount"]');
-const submitForm = document.querySelector('button');
 
-submitForm.addEventListener('submit', onFormSubmit);
+form.addEventListener('submit', onClickSubmit);
 
-function onFormSubmit(evt) {
-  evt.preventDefault();
+function onClickSubmit(e) {
+  e.preventDefault();
+  const {
+    elements: { delay, step, amount },
+  } = e.currentTarget;
 
-  let delay = Number(firstDelay.value);
-  const step = Number(delayStep.value);
-  const amount = Number(amountSteps.value);
+  let delayInput = Number(delay.value);
+  const stepInput = Number(step.value);
+  const amountInput = Number(amount.value);
 
-  for (let position = 1; position <= amount; position++) {
-    createPromise(position, delay)
+  for (let position = 1; position <= amountInput; position += 1) {
+    const delay = (delayInput += position === 1 ? 0 : stepInput);
+
+    createPromise({ position, delay })
       .then(({ position, delay }) => {
-        console.log(`✅ Fulfilled promise ${position} in ${delay}ms`);
+        Notiflix.Notify.success(
+          `✅ Fulfilled promise ${position} in ${delay}ms`
+        );
       })
       .catch(({ position, delay }) => {
-        console.log(`❌ Rejected promise ${position} in ${delay}ms`);
+        Notiflix.Notify.failure(
+          `❌ Rejected promise ${position} in ${delay}ms`
+        );
       });
-    delay += step;
   }
 }
-function createPromise(position, delay) {
-  return new Promise((res, rej) => {
-    const shouldResolve = Math.random() > 0.3;
+
+function createPromise({ position, delay }) {
+  const shouldResolve = Math.random() > 0.3;
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (shouldResolve) {
-        res(`✅ Fulfilled promise ${position} in ${delay}ms`);
-        // Fulfill
+        resolve({ position, delay });
       } else {
-        rej(`❌ Rejected promise ${position} in ${delay}ms`);
-        // Reject
+        reject({ position, delay });
       }
     }, delay);
   });
